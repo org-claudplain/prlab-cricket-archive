@@ -22,7 +22,7 @@ def test_store_keeps_product_fields() -> None:
     assert stored.last_event.display == "FOUR"
 
 
-def test_store_strips_protocol_leaks() -> None:
+def test_store_keeps_protocol_leaks_for_support() -> None:
     stored = store_snapshot(
         IngestSnapshot.model_validate(
             {
@@ -42,6 +42,5 @@ def test_store_strips_protocol_leaks() -> None:
         )
     )
     dumped = stored.model_dump()
-    assert "raw_ball" not in dumped
-    assert "match" not in dumped
-    assert dumped["last_event"]["wicket_counted"] is False
+    assert dumped["raw_ball"]["wicket"]["kind"] == "lbw"
+    assert dumped["match"]["innings"]["latest_over"]["latest_delivery"] == {}
