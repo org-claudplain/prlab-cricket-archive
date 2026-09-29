@@ -19,11 +19,11 @@ SNAPSHOT = {
 }
 
 
-def test_history_strips_leaks() -> None:
+def test_history_keeps_raw_ball_for_support() -> None:
     recorded = client.post("/matches/m1/snapshots", json=SNAPSHOT)
     assert recorded.status_code == 200
-    assert "raw_ball" not in recorded.json()
+    assert recorded.json()["raw_ball"]["extras"]["type"] == "none"
     history = client.get("/matches/m1/history")
     assert history.status_code == 200
     assert history.json()[0]["runs"] == 1
-    assert "raw_ball" not in history.json()[0]
+    assert history.json()[0]["raw_ball"]["extras"]["type"] == "none"
