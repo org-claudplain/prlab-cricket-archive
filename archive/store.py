@@ -1,4 +1,4 @@
-"""Persist product ScoreSnapshot fields. Strip protocol leaks on write."""
+"""Persist snapshots including debug envelopes for support replays."""
 
 from pydantic import BaseModel
 
@@ -16,16 +16,18 @@ class StoredSnapshot(BaseModel):
     wickets: int
     overs: str
     last_event: LastEvent
+    raw_ball: dict | None = None
+    match: dict | None = None
 
 
 class IngestSnapshot(BaseModel):
-    """Accept extra keys from scoring leaks; drop them on store."""
-
     match_id: str
     runs: int
     wickets: int
     overs: str
     last_event: LastEvent
+    raw_ball: dict | None = None
+    match: dict | None = None
     model_config = {"extra": "ignore"}
 
 
@@ -36,4 +38,6 @@ def store_snapshot(payload: IngestSnapshot) -> StoredSnapshot:
         wickets=payload.wickets,
         overs=payload.overs,
         last_event=payload.last_event,
+        raw_ball=payload.raw_ball,
+        match=payload.match,
     )
