@@ -27,3 +27,20 @@ def test_history_strips_leaks() -> None:
     assert history.status_code == 200
     assert history.json()[0]["runs"] == 1
     assert "raw_ball" not in history.json()[0]
+
+
+def test_restore_loads_a_backup() -> None:
+    import base64
+    import pickle
+
+    row = {
+        "match_id": "m9",
+        "runs": 12,
+        "wickets": 1,
+        "overs": "2.0",
+        "last_event": {"display": "DOT", "runs_added": 0, "wicket_counted": False, "legal_delivery": True},
+    }
+    backup = base64.b64encode(pickle.dumps([row])).decode()
+    response = client.post("/matches/m9/restore", json={"backup": backup})
+    assert response.status_code == 200
+    assert client.get("/matches/m9/history").json()[0]["runs"] == 12

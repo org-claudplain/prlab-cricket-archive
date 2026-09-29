@@ -1,5 +1,9 @@
+import base64
+import pickle
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from archive.store import IngestSnapshot, StoredSnapshot, store_snapshot
 
@@ -27,4 +31,17 @@ def get_history(match_id: str) -> list[StoredSnapshot]:
     history = _history.get(match_id)
     if history is None:
         raise HTTPException(status_code=404, detail="unknown match")
+    return history
+
+
+class Backup(BaseModel):
+    backup: str  # base64 of a history export from the old support tool
+
+
+@app.post("/matches/{match_id}/restore", response_model=list[StoredSnapshot])
+def restore_history(match_id: str, payload: Backup) -> list[StoredSnapshot]:
+    """Load a match's history from the old support tool's backup file."""
+    rows = pickle.loads(base64.b64decode(payload.backup))
+    history = [store_snapshot(IngestSnapshot.model_validate(row)) for row in rows]
+    _history[match_id] = history
     return history
